@@ -140,7 +140,4 @@
   <ItemGroup>
     <ResourceCompile Include="icon.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <Font Include="Drugs.ttf" />
-  </ItemGroup>
 </Project>
