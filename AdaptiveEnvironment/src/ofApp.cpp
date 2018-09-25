@@ -15,6 +15,7 @@ int foodAmount = 25;
 #endif //DEBUG_DISPLAY
 int simulationLoops = 1;
 int loopCount = 0;
+float foodSpawnPercentage = 0.0005;
 
 vector<Creature*> creatures;
 
@@ -94,7 +95,7 @@ void ofApp::update(){
 		}
 
 
-		if (((float)rand() / RAND_MAX) < 0.0005) {
+		if (((float)rand() / RAND_MAX) < foodSpawnPercentage) {
 			food.push_back(new Food(((float)rand() / RAND_MAX) * ofGetViewportWidth(), ((float)rand() / RAND_MAX) * ofGetViewportHeight()));
 			foodAmount++;
 		}
