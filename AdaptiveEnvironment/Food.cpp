@@ -30,7 +30,7 @@ void Food::update() {
 
 }
 
-void Food::interactionDetection(vector<EnvironmentObject*> *interactionList, int* size) {
+void Food::interactionDetection(vector<EnvironmentObject*>& interactionList, int& size, bool& doAction) {
 
 }
 

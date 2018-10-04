@@ -85,6 +85,7 @@ void Creature::update()
 
 #if !DEBUG_DISPLAY
 	life -= 0.1;
+	reproductionTimestamp -= 0.1;
 #endif //DEBUG_DISPLAY
 }
 
@@ -142,8 +143,8 @@ void Creature::draw()
 	drawFlowField();
 	drawSteering();
 #endif //DEBUG_DISPLAY
-	
-	ofSetColor(0, 50, 255, 255 * (life / maxLife));
+	int otherColor = reproductionTimestamp < 0 ? 255 : 0;
+	ofSetColor(otherColor, 50, 255, 255 * (life / maxLife));
 	ofFill();
 	ofDrawEllipse(pos.x, pos.y, radius * 2.0, radius * 2.0);
 	//ofDrawRectangle(pos.x - radius, pos.y - radius, radius * 2, radius * 2);
@@ -186,8 +187,9 @@ void Creature::drawSteering() {
 }
 #endif //DEBUG_DISPLAY
 
+//TODO make this sexual
 Creature* Creature::reproduce() {
-	if (randomFloat() < 0.0007) {
+	if (randomFloat() < 0.05) {
 		return new Creature(this);
 	}
 	else {
@@ -203,32 +205,86 @@ void Creature::boundaries()
 	pos.y = (pos.y < 0) ? pos.y + ofGetViewportHeight() : pos.y;
 }
 
-void Creature::interactionDetection(vector<EnvironmentObject*> *interactionList, int* size)
-{
-	for (int i = 0; i < *size; i++) {
-		if (pos.squareDistance((*(*interactionList)[i]).getPos()) < sqrRadius + (*(*interactionList)[i]).getSqrRadius()) { //Collide
-			//std::cout << typeid((*(*interactionList)[i])).name() << std::endl;
-			if (typeid((*(*interactionList)[i])).name() == std::string("class Food") && (*interactionList)[i]->getIsDead() == false) {
-				//std::cout << "FOOD INTERACTION" << std::endl;
-				//dynamic_cast<Food*>((*interactionList)[i])->setHasBeenEaten(true);
-				(*interactionList)[i]->setIsDead(true);
+bool Creature::isCollidingWith(EnvironmentObject* otherObj) {
+	return pos.squareDistance((*otherObj).getPos()) < sqrRadius + (*otherObj).getSqrRadius();
+}
+
+void Creature::foodInteractionDetection(vector<Food*>& interactionList, int& size) {
+	for (int i = 0; i < size; i++) {
+		if (isCollidingWith(interactionList[i])) {
+			if (interactionList[i]->getIsDead() == false) {
+				(interactionList)[i]->setIsDead(true);
 				targetObj = nullptr;
-				//delete ((*interactionList)[i]);
-				//(*interactionList).erase((*interactionList).begin() + i);
-				//(*size)--;
 				life += 50.0;
 				if (life > maxLife) {
 					life = maxLife;
 				}
 			}
-			else if (typeid((*(*interactionList)[i])).name() == std::string("class Creature")) {
+		}
+		else {
+			if ((targetObj == nullptr || pos.squareDistance((*(interactionList)[i]).getPos()) < pos.squareDistance(targetObj->getPos())) && (interactionList)[i]->getIsDead() == false) {
+				targetObj = (((interactionList)[i]));
+			}
+		}
+	}
+}
 
+void Creature::creatureInteractionDetection(vector<Creature*>& interactionList, int& size, Creature*& possibleChild) {
+	for (int i = 0; i < size; i++) {
+		if (interactionList[i] != this) {
+			if (isCollidingWith(interactionList[i])) {
+				//Check for same species or not
+				//Eat or Mate
+				if (reproductionTimestamp < 0) {
+					//Assume mate for now
+					reproductionTimestamp = reproductionCooldown;
+					targetObj = nullptr;
+					delete possibleChild;
+					possibleChild = reproduce();
+					return; //Done interacting with creatures for that update call after one reproduction
+				}
+			}
+			else {
+				//Check for same species or not
+				//Set target as prey / mate
+				//Assume mate for now
+				//TODO reproduction cooldown
+				if (reproductionTimestamp < 0 && (targetObj == nullptr || pos.squareDistance((*(interactionList)[i]).getPos()) < pos.squareDistance(targetObj->getPos())) && (interactionList)[i]->getIsDead() == false) {
+					targetObj = (((interactionList)[i]));
+				}
+			}
+		}
+	}
+}
+
+
+//TODO have references to hadBaby or something
+void Creature::interactionDetection(vector<EnvironmentObject*>& interactionList, int& size, bool& doAction)
+{
+	for (int i = 0; i < size; i++) {
+		if (pos.squareDistance((*(interactionList)[i]).getPos()) < sqrRadius + (*(interactionList)[i]).getSqrRadius()) { //Collide
+			if (typeid((*(interactionList)[i])).name() == std::string("class Food") && (interactionList)[i]->getIsDead() == false) {
+				(interactionList)[i]->setIsDead(true);
+				targetObj = nullptr;
+				life += 50.0;
+				if (life > maxLife) {
+					life = maxLife;
+				}
+			}
+			else if (typeid((*(interactionList)[i])).name() == std::string("class Creature")) {
+				if ((interactionList[i] != this) && randomFloat() < 0.0003) {
+					//Have baby?
+					doAction = true;
+				}
 			}
 		}
 		else {
-			if ((targetObj == nullptr || pos.squareDistance((*(*interactionList)[i]).getPos()) < pos.squareDistance(targetObj->getPos())) && (*interactionList)[i]->getIsDead() == false) {
-				targetObj = (((*interactionList)[i]));
-
+			if (typeid((*(interactionList)[i])).name() == std::string("class Food") && (targetObj == nullptr || pos.squareDistance((*(interactionList)[i]).getPos()) < pos.squareDistance(targetObj->getPos())) && (interactionList)[i]->getIsDead() == false) {
+				targetObj = (((interactionList)[i]));
+			}
+			else if (typeid((*(interactionList)[i])).name() == std::string("class Creature")) {
+				//Check if same species
+				//move towards prey OR mate
 			}
 		}
 		

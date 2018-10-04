@@ -11,16 +11,16 @@ int creatureAmount = 1;
 int foodAmount = 0;
 #else
 int creatureAmount = 25;
-int foodAmount = 25;
+int foodAmount = 50;
 #endif //DEBUG_DISPLAY
 int simulationLoops = 1;
 int loopCount = 0;
-float foodSpawnPercentage = 0.0005;
+float foodSpawnPercentage = 0.05;
 
 vector<Creature*> creatures;
 
 
-vector<EnvironmentObject*> food;
+vector<Food*> food;
 
 ofxGraph dnaGraph;
 ofxGraph objectCountGraph;
@@ -29,7 +29,6 @@ bool isDrawingGraph = false;
 void ofApp::setup(){
 	ofSetBackgroundColor(195, 215, 195);
 
-	//ofxGuiSetFont(ofToDataPath("Drugs.ttf"), 10);
 	ofxGuiSetFillColor(ofColor(0, 0, 0));
 
 	dnaGraph.setup("Average DNA Values");
@@ -75,17 +74,24 @@ void ofApp::update(){
 
 		for (int i = 0; i < creatureAmount; i++) {
 			(*creatures[i]).update();
-			(*creatures[i]).interactionDetection(&food, &foodAmount);
+			(*creatures[i]).foodInteractionDetection(food, foodAmount);
+			Creature* possibleChild = nullptr;
+			(*creatures[i]).creatureInteractionDetection(creatures, creatureAmount, possibleChild);
 
-			Creature* reproduceVal = (*creatures[i]).reproduce();
-			if (reproduceVal != nullptr) {
-				creatures.push_back(reproduceVal);
+			if (possibleChild != nullptr) {
+				creatures.push_back(possibleChild);
 				creatureAmount++;
 			}
 
+			/*Creature* reproduceVal = (*creatures[i]).reproduce();
+			if (reproduceVal != nullptr) {
+				creatures.push_back(reproduceVal);
+				creatureAmount++;
+			}*/
+
 			if ((*creatures[i]).getIsDead()) {
-				food.push_back(new Food(creatures[i]->getPos().x, creatures[i]->getPos().y));
-				foodAmount++;
+				/*food.push_back(new Food(creatures[i]->getPos().x, creatures[i]->getPos().y));
+				foodAmount++;*/
 				
 				delete (creatures[i]);
 				creatures.erase(creatures.begin() + i);
@@ -133,7 +139,6 @@ void ofApp::update(){
 			//std::cout << "Average Creature Speed: " << avgSpeed << std::endl;
 			//std::cout << "Average Creature Max Life: " << avgMaxLife << std::endl;
 			//std::cout << "Average Creature Food Attention: " << avgFoodAttention << std::endl;
-
 		}
 
 		loopCount++;
@@ -142,17 +147,12 @@ void ofApp::update(){
 		}
 	}
 
-
-	
-	
 }
 
 
 //--------------------------------------------------------------
 void ofApp::draw()
 {
-	
-
 	for (int i = 0; i < foodAmount; i++) {
 		(*food[i]).draw();
 	}
@@ -165,7 +165,6 @@ void ofApp::draw()
 		dnaGraph.draw();
 		objectCountGraph.draw();
 	}
-
 }
 
 //--------------------------------------------------------------

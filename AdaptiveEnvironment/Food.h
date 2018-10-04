@@ -11,7 +11,7 @@ public:
 
 	void draw();
 	void update();
-	void interactionDetection(vector<EnvironmentObject*> *interactionList, int* size);
+	void interactionDetection(vector<EnvironmentObject*>& interactionList, int& size, bool& doAction);
 	//TODO add a hasBeenEaten flag, and a delayed deletion to allow for food tracking
 	bool getIsDead();
 };

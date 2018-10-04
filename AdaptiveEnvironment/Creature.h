@@ -2,6 +2,7 @@
 #include "DNA.h"
 #include "ofVec2f.h"
 #include "EnvironmentObject.h"
+#include "Food.h"
 
 #define DEBUG_DISPLAY false
 
@@ -24,6 +25,8 @@ private:
 	float life;
 
 	float tOff;
+	float reproductionTimestamp = 0.0;
+	float reproductionCooldown = 16.0;
 
 	int divisions = 32;
 	float noiseScale = 0.5;
@@ -34,6 +37,7 @@ private:
 	float fourDimNoise(ofVec2f position);
 	void drawFlowField();
 	void drawSteering();
+	bool isCollidingWith(EnvironmentObject* otherObj);
 public:
 	Creature();
 	Creature(int xPos, int yPos);
@@ -42,7 +46,9 @@ public:
 
 	void update();
 	void draw();
-	void interactionDetection(vector<EnvironmentObject*> *interactionList, int* size);
+	void foodInteractionDetection(vector<Food*>& interactionList, int& size);
+	void creatureInteractionDetection(vector<Creature*>& interactionList, int& size, Creature*& possibleChild);
+	void interactionDetection(vector<EnvironmentObject*>& interactionList, int& size, bool& doAction);
 
 	//TODO Implement Reproduce
 	Creature* reproduce();

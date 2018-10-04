@@ -21,7 +21,7 @@ public:
 
 	virtual void draw() = 0;
 	virtual void update() = 0;
-	virtual void interactionDetection(vector<EnvironmentObject*> *interactionList, int* size) = 0;
+	virtual void interactionDetection(vector<EnvironmentObject*>& interactionList, int& size, bool& doAction) = 0;
 
 	ofVec2f getPos() {
 		return pos;
